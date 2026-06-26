@@ -87,10 +87,10 @@ tbody tr:hover{background:var(--s2)}
 .hist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .sync-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--s2);border-radius:var(--rs);margin-bottom:14px;font-size:11px;color:var(--t2)}
 .sdot{width:8px;height:8px;border-radius:50%;background:var(--grn);flex-shrink:0}
-.sdot.syncing{background:var(--amb)}
-.sdot.error{background:var(--red)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .sdot.live{animation:pulse 2s infinite}
+.sdot.syncing{background:var(--amb)}
+.sdot.error{background:var(--red)}
 .legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;font-size:11px;color:var(--t2)}
 .legend span{display:flex;align-items:center;gap:4px}
 .lsq{width:9px;height:9px;border-radius:2px;flex-shrink:0}
@@ -111,23 +111,16 @@ input[type=file]{display:none}
 .ub-c{background:#faeeda;color:#a06010;border:1px solid #fac775}
 .ub-a{background:#f1efe8;color:#5f5e5a;border:1px solid #d3d1c7}
 @media print{
-  .topbar .tbr{display:none}
-  .tabs{display:none}
-  #view-ceo{display:block!important}
-  .view:not(#view-ceo){display:none!important}
-  canvas{max-width:100%}
-  @page{margin:1.5cm}
+  .topbar .tbr{display:none}.tabs{display:none}
+  #view-ceo{display:block!important}.view:not(#view-ceo){display:none!important}
+  canvas{max-width:100%}@page{margin:1.5cm}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
-
 <div class="topbar">
-  <div>
-    <h1>Xingo Automóveis — Fluxo de Caixa</h1>
-    <p id="today-lbl"></p>
-  </div>
+  <div><h1>Xingo Automóveis — Fluxo de Caixa</h1><p id="today-lbl"></p></div>
   <div class="tbr">
     <span id="user-badge" class="user-badge ub-t">🏦 Tesouraria</span>
     <select id="sel-user" onchange="switchUser(this.value)" style="padding:5px 10px;border:1px solid var(--b2);border-radius:var(--rs);font-size:12px;background:var(--surf);color:var(--tx)">
@@ -136,12 +129,12 @@ input[type=file]{display:none}
       <option value="ceo">CEO</option>
       <option value="admin">Admin</option>
     </select>
-    <span id="sdot" class="sdot live" title="Dados ao vivo"></span>
+    <span id="sdot-top" class="sdot live" title="Conectado"></span>
     <button class="btn btn-sm" onclick="syncAll()">↻ Sincronizar</button>
   </div>
 </div>
 
-<div class="tabs" id="main-tabs">
+<div class="tabs">
   <button class="tab active" onclick="show('bancos',this)">🏦 Bancos</button>
   <button class="tab" onclick="show('receber',this)">↓ A Receber</button>
   <button class="tab" onclick="show('pagar',this)">↑ A Pagar</button>
@@ -156,7 +149,7 @@ input[type=file]{display:none}
 <div id="view-bancos" class="view active">
   <div class="sync-bar">
     <span class="sdot live" id="bank-sdot"></span>
-    <span id="bank-sync-msg">Carregando dados da nuvem...</span>
+    <span id="bank-sync-msg">Conectando ao banco de dados...</span>
     <span style="margin-left:auto;font-size:10px;color:var(--t3)" id="bank-last-upd"></span>
   </div>
   <div class="sumbar">
@@ -172,11 +165,8 @@ input[type=file]{display:none}
       <option value="all">Todos os bancos</option>
     </select>
   </div>
-  <div class="card"><div id="hist-list"><div style="text-align:center;color:var(--t3);font-size:12px;padding:16px">Nenhum lançamento ainda</div></div></div>
-  <div id="bank-form-wrap">
-    <div class="sh"><span class="st">Registrar saldo</span></div>
-    <div id="bank-form-area"></div>
-  </div>
+  <div class="card"><div id="hist-list"><div style="text-align:center;color:var(--t3);font-size:12px;padding:16px">Carregando...</div></div></div>
+  <div id="bank-form-wrap"><div class="sh"><span class="st">Registrar saldo</span></div><div id="bank-form-area"></div></div>
 </div>
 
 <!-- A RECEBER -->
@@ -186,10 +176,7 @@ input[type=file]{display:none}
   <div id="rec-content" style="display:none">
     <div class="pills" id="rec-pills"></div>
     <div class="sh"><span class="st" id="rec-tbl-lbl">Todos os títulos</span></div>
-    <div class="tw"><table>
-      <thead><tr><th style="width:28%">Nome</th><th style="width:14%">Depto</th><th style="width:16%">Tipo</th><th style="width:14%">Vencimento</th><th style="width:13%">Situação</th><th style="width:15%;text-align:right">Valor</th></tr></thead>
-      <tbody id="tbody-rec"></tbody>
-    </table></div>
+    <div class="tw"><table><thead><tr><th style="width:28%">Nome</th><th style="width:14%">Depto</th><th style="width:16%">Tipo</th><th style="width:14%">Vencimento</th><th style="width:13%">Situação</th><th style="width:15%;text-align:right">Valor</th></tr></thead><tbody id="tbody-rec"></tbody></table></div>
   </div>
 </div>
 
@@ -200,10 +187,7 @@ input[type=file]{display:none}
   <div id="pag-content" style="display:none">
     <div class="pills" id="pag-pills"></div>
     <div class="sh"><span class="st" id="pag-tbl-lbl">Todos os títulos</span></div>
-    <div class="tw"><table>
-      <thead><tr><th style="width:28%">Nome</th><th style="width:14%">Depto</th><th style="width:16%">Categoria</th><th style="width:14%">Vencimento</th><th style="width:13%">Situação</th><th style="width:15%;text-align:right">Valor</th></tr></thead>
-      <tbody id="tbody-pag"></tbody>
-    </table></div>
+    <div class="tw"><table><thead><tr><th style="width:28%">Nome</th><th style="width:14%">Depto</th><th style="width:16%">Categoria</th><th style="width:14%">Vencimento</th><th style="width:13%">Situação</th><th style="width:15%;text-align:right">Valor</th></tr></thead><tbody id="tbody-pag"></tbody></table></div>
   </div>
 </div>
 
@@ -253,31 +237,75 @@ input[type=file]{display:none}
   <div id="ceo-body"></div>
 </div>
 
-</div><!-- /content -->
-</div><!-- /wrap -->
+</div>
+</div>
 
 <div class="toast" id="toast"></div>
 <input type="file" id="fi-rec" accept=".txt,.csv,.xlsx,.xls" onchange="importFile(this,'CR')">
 <input type="file" id="fi-pag" accept=".txt,.csv,.xlsx,.xls" onchange="importFile(this,'CP')">
 
 <script>
+// ── CONFIG JSONBIN ────────────────────────────────────────
+var JBIN_KEY = '$2a$10$70CYRb/a/1cjmoWxno/kOuh2rs1QK8nFqri/1OLJbXC8s/9fapldq';
+var JBIN_BASE = 'https://api.jsonbin.io/v3/b';
+var BINS = { hist: null, cr: null, cp: null, meta: null };
+
+async function jbinGet(binId) {
+  if (!binId) return null;
+  try {
+    var r = await fetch(JBIN_BASE + '/' + binId + '/latest', {
+      headers: { 'X-Master-Key': JBIN_KEY }
+    });
+    if (!r.ok) return null;
+    var j = await r.json();
+    return j.record;
+  } catch(e) { return null; }
+}
+async function jbinSet(binId, data) {
+  if (!binId) return jbinCreate(data);
+  try {
+    var r = await fetch(JBIN_BASE + '/' + binId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JBIN_KEY },
+      body: JSON.stringify(data)
+    });
+    return r.ok ? binId : null;
+  } catch(e) { return null; }
+}
+async function jbinCreate(data) {
+  try {
+    var r = await fetch(JBIN_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JBIN_KEY, 'X-Bin-Private': 'false' },
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) return null;
+    var j = await r.json();
+    return j.metadata.id;
+  } catch(e) { return null; }
+}
+
+// IDs dos bins salvos no localStorage
+function loadBinIds() {
+  try {
+    var s = localStorage.getItem('xingo_bins');
+    if (s) { var b = JSON.parse(s); BINS.hist = b.hist||null; BINS.cr = b.cr||null; BINS.cp = b.cp||null; BINS.meta = b.meta||null; }
+  } catch(e) {}
+}
+function saveBinIds() {
+  try { localStorage.setItem('xingo_bins', JSON.stringify(BINS)); } catch(e) {}
+}
+
+// ── PALETTE / STATE ───────────────────────────────────────
 var PAL=['#1a5090','#1a8a5a','#a06010','#7a30a0','#b03050','#306080','#507830','#805020'];
 var NOW=new Date();
 var CU='tesouraria';
 var CH={};
-
 var BANKS=['Caixa Físico','Banco do Brasil','Bradesco','Caixa Econômica Federal','BANESE','BB — Aplicação'];
 var BTIPO={'Caixa Físico':'cx','Banco do Brasil':'cc','Bradesco':'cc','Caixa Econômica Federal':'cc','BANESE':'cc','BB — Aplicação':'apl'};
 var BTLBL={'cc':'Conta corrente','apl':'Aplicação/CDB','cx':'Caixa físico','out':'Outros'};
-
 var DB={banks:{},hist:[],cr:[],cp:[]};
-
-var PERMS={
-  tesouraria:{bank:true,rec:false,pag:false,ceo:false},
-  financeiro:{bank:false,rec:true,pag:true,ceo:false},
-  ceo:{bank:false,rec:false,pag:false,ceo:true},
-  admin:{bank:true,rec:true,pag:true,ceo:true}
-};
+var PERMS={tesouraria:{bank:true,rec:false,pag:false,ceo:false},financeiro:{bank:false,rec:true,pag:true,ceo:false},ceo:{bank:false,rec:false,pag:false,ceo:true},admin:{bank:true,rec:true,pag:true,ceo:true}};
 
 var fmt=function(v){return 'R$ '+Math.round(v).toLocaleString('pt-BR');};
 var fmtF=function(v){return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});};
@@ -286,7 +314,7 @@ var isV=function(d){if(!d||d==='—')return false;var p=d.split('/');if(p.length
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);}
 function dc(id){if(CH[id]){CH[id].destroy();delete CH[id];}}
 function idxH(h,k){for(var i=0;i<k.length;i++){var x=h.indexOf(k[i]);if(x>=0)return x;}return -1;}
-function kv(l,v,s,c){return '<div class="kpi"><div class="kpi-lbl">'+l+'</div><div class="kpi-val '+(c||'')+'" style="color:'+(c==='grn'?'var(--grn)':c==='red'?'var(--red)':c==='blu'?'var(--blu)':'var(--tx)')+'">'+v+'</div>'+(s?'<div class="kpi-sub">'+s+'</div>':'')+'</div>';}
+function kv(l,v,s,c){var col=c==='grn'?'var(--grn)':c==='red'?'var(--red)':c==='blu'?'var(--blu)':'var(--tx)';return '<div class="kpi"><div class="kpi-lbl">'+l+'</div><div class="kpi-val" style="color:'+col+'">'+v+'</div>'+(s?'<div class="kpi-sub">'+s+'</div>':'')+'</div>';}
 
 document.getElementById('today-lbl').textContent=NOW.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
 
@@ -295,58 +323,89 @@ function show(v,btn){
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
   btn.classList.add('active');
-  if(v==='fluxo')rFluxo();
-  else if(v==='horizonte')rHor();
-  else if(v==='ceo')rCEO();
+  if(v==='fluxo')rFluxo();else if(v==='horizonte')rHor();else if(v==='ceo')rCEO();
 }
 
-var USER_LABELS={tesouraria:'🏦 Tesouraria',financeiro:'📊 Financeiro',ceo:'👔 CEO',admin:'⚙️ Admin'};
-var USER_CLS={tesouraria:'ub-t',financeiro:'ub-f',ceo:'ub-c',admin:'ub-a'};
+var UL={tesouraria:'🏦 Tesouraria',financeiro:'📊 Financeiro',ceo:'👔 CEO',admin:'⚙️ Admin'};
+var UC={tesouraria:'ub-t',financeiro:'ub-f',ceo:'ub-c',admin:'ub-a'};
 function switchUser(u){
-  CU=u;
-  var b=document.getElementById('user-badge');
-  b.textContent=USER_LABELS[u];b.className='user-badge '+USER_CLS[u];
-  var p=PERMS[u];
-  document.getElementById('tab-ceo').style.display=(p.ceo||u==='admin')?'':'none';
-  rBankForm();rImport();
-  toast('Perfil: '+USER_LABELS[u]);
+  CU=u;var b=document.getElementById('user-badge');b.textContent=UL[u];b.className='user-badge '+UC[u];
+  document.getElementById('tab-ceo').style.display=(PERMS[u].ceo||u==='admin')?'':'none';
+  rBankForm();rImport();toast('Perfil: '+UL[u]);
 }
 
 async function syncAll(){
-  document.getElementById('sdot').className='sdot syncing';
+  document.getElementById('sdot-top').className='sdot syncing';
+  document.getElementById('bank-sdot').className='sdot syncing';
   await loadCloud();
-  document.getElementById('sdot').className='sdot live';
+  document.getElementById('sdot-top').className='sdot live';
+  document.getElementById('bank-sdot').className='sdot live';
   var now=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('bank-last-upd').textContent='Atualizado '+now;
   rBanks();if(DB.cr.length)rRec();if(DB.cp.length)rPag();
-  toast('Dados sincronizados!');
+  toast('✅ Dados sincronizados!');
 }
 
-async function saveCloud(key,data){
-  try{var r=await window.storage.set(key,JSON.stringify(data),true);return!!r;}catch(e){return false;}
-}
-async function getCloud(key){
-  try{var r=await window.storage.get(key,true);return r?JSON.parse(r.value):null;}catch(e){return null;}
-}
 async function loadCloud(){
   try{
-    var h=await getCloud('xingo_bank_hist');if(h)DB.hist=h;
-    var cr=await getCloud('xingo_cr');if(cr)DB.cr=cr;
-    var cp=await getCloud('xingo_cp');if(cp)DB.cp=cp;
-    buildBanks();
+    // Load custom banks metadata first
+    var meta=await jbinGet(BINS.meta);
+    if(meta&&Array.isArray(meta)){
+      DB.meta=meta;
+      meta.forEach(function(m){
+        if(BANKS.indexOf(m.nome)<0){BANKS.push(m.nome);BTIPO[m.nome]=m.tipo||'cc';}
+      });
+    }
+    var h=await jbinGet(BINS.hist);if(h&&Array.isArray(h)){DB.hist=h;buildBanks();}
+    var cr=await jbinGet(BINS.cr);if(cr&&Array.isArray(cr))DB.cr=cr;
+    var cp=await jbinGet(BINS.cp);if(cp&&Array.isArray(cp))DB.cp=cp;
     document.getElementById('bank-sync-msg').textContent='Dados em tempo real · compartilhado com todos';
     document.getElementById('bank-sdot').className='sdot live';
   }catch(e){
-    document.getElementById('bank-sync-msg').textContent='Usando dados locais';
+    document.getElementById('bank-sync-msg').textContent='Erro ao conectar. Verifique a internet.';
     document.getElementById('bank-sdot').className='sdot error';
   }
 }
+
+async function saveHist(){
+  var id=await jbinSet(BINS.hist,DB.hist);
+  if(id&&id!==BINS.hist){BINS.hist=id;saveBinIds();}
+  return!!id;
+}
+async function saveCR(){
+  var id=await jbinSet(BINS.cr,DB.cr);
+  if(id&&id!==BINS.cr){BINS.cr=id;saveBinIds();}
+  return!!id;
+}
+async function saveCP(){
+  var id=await jbinSet(BINS.cp,DB.cp);
+  if(id&&id!==BINS.cp){BINS.cp=id;saveBinIds();}
+  return!!id;
+}
+async function saveMeta(){
+  var id=await jbinSet(BINS.meta,DB.meta||[]);
+  if(id&&id!==BINS.meta){BINS.meta=id;saveBinIds();}
+  return!!id;
+}
+
 function buildBanks(){
   DB.banks={};
   BANKS.forEach(function(n){
-    var entries=DB.hist.filter(function(h){return h.banco===n;}).sort(function(a,b){return new Date(b.ts)-new Date(a.ts);});
+    var entries=DB.hist.filter(function(h){return h.banco===n;}).sort(function(a,b){return b.ts-a.ts;});
     if(entries.length)DB.banks[n]=entries[0];
   });
+}
+
+async function removerBanco(nome){
+  if(!confirm('Remover o banco "'+nome+'" e todo seu histórico?'))return;
+  var idx=BANKS.indexOf(nome);
+  if(idx>=0)BANKS.splice(idx,1);
+  delete BTIPO[nome];
+  delete DB.banks[nome];
+  DB.hist=DB.hist.filter(function(h){return h.banco!==nome;});
+  DB.meta=(DB.meta||[]).filter(function(m){return m.nome!==nome;});
+  await saveHist();await saveMeta();
+  rBanks();toast('Banco "'+nome+'" removido.');
 }
 
 async function salvarSaldo(){
@@ -357,13 +416,13 @@ async function salvarSaldo(){
   var p=data.split('-');var dataFmt=p.length===3?p[2]+'/'+p[1]+'/'+p[0]:data;
   var entry={banco:banco,saldo:saldo,data:dataFmt,user:CU,ts:Date.now()};
   DB.hist=DB.hist.filter(function(h){return!(h.banco===banco&&h.data===dataFmt);});
-  DB.hist.push(entry);
-  DB.hist.sort(function(a,b){return b.ts-a.ts;});
+  DB.hist.push(entry);DB.hist.sort(function(a,b){return b.ts-a.ts;});
   buildBanks();
-  var ok=await saveCloud('xingo_bank_hist',DB.hist);
+  toast('Salvando na nuvem...');
+  var ok=await saveHist();
   rBanks();
   document.getElementById('bk-saldo').value='';
-  toast(ok?'✓ Saldo salvo na nuvem! Todos verão ao sincronizar':'✓ Salvo localmente');
+  toast(ok?'✅ Saldo salvo! Todos verão ao sincronizar.':'⚠️ Erro ao salvar na nuvem.');
 }
 
 function rBanks(){
@@ -378,12 +437,12 @@ function rBanks(){
     var e=DB.banks[n];var s=e?e.saldo:null;var col=PAL[i%PAL.length];
     var pct=tot>0&&s?Math.round(s/tot*1000)/10:0;var low=s!==null&&s<100;
     var div=document.createElement('div');div.className='bcard';
-    div.innerHTML='<div class="bcard-header"><div><div class="bcard-name">'+n+'</div><div class="bcard-tipo">'+BTLBL[BTIPO[n]||'cc']+'</div></div>'
-      +'<span class="badge '+(low?'ba':'bb')+'">'+(low?'⚠ Mínimo':'✓ Ok')+'</span></div>'
+    var isDefault=(['Caixa Físico','Banco do Brasil','Bradesco','Caixa Econômica Federal','BANESE','BB — Aplicação'].indexOf(n)>=0);
+    div.innerHTML='<div class="bcard-header"><div><div class="bcard-name">'+n+'</div><div class="bcard-tipo">'+BTLBL[BTIPO[n]||'cc']+'</div></div><div style="display:flex;align-items:center;gap:6px"><span class="badge '+(low?'ba':'bb')+'">'+(low?'⚠ Mínimo':'✓ Ok')+'</span>'+(isDefault?'':'<button class="btn btn-sm" style="padding:2px 7px;font-size:10px;color:var(--red);border-color:var(--red)" onclick="removerBanco(''+n.replace(/'/g,"\'")+'')" title="Remover banco">✕</button>')+'</div></div>'
       +'<div class="bcard-val" style="color:'+(low?'var(--amb)':s===null?'var(--t3)':'var(--grn)')+'">'+( s!==null?fmtF(s):'Sem dado')+'</div>'
       +'<div class="prog"><div class="prog-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'
       +'<div class="bcard-row"><span>Participação</span><span>'+pct+'%</span></div>'
-      +(e?'<div class="bcard-row"><span>Posição</span><span>'+e.data+'</span></div>':'<div class="bcard-row" style="color:var(--amb)">Cadastrar saldo abaixo</div>');
+      +(e?'<div class="bcard-row"><span>Posição</span><span>'+e.data+'</span></div><div class="bcard-row"><span>Por</span><span>'+e.user+'</span></div>':'<div class="bcard-row" style="color:var(--amb)">Cadastrar saldo abaixo</div>');
     g.appendChild(div);
   });
   updHistSel();renderHistorico();rBankForm();
@@ -406,7 +465,7 @@ function renderHistorico(){
     d.innerHTML='<span class="hist-dot" style="background:'+col+'"></span>'
       +'<span style="flex:1;font-weight:500">'+h.banco+'</span>'
       +'<span style="color:var(--t3);min-width:80px">'+h.data+'</span>'
-      +'<span style="color:var(--grn);font-weight:600;min-width:110px;text-align:right">'+fmtF(h.saldo)+'</span>'
+      +'<span style="color:var(--grn);font-weight:600;min-width:120px;text-align:right">'+fmtF(h.saldo)+'</span>'
       +'<span style="color:var(--t3);min-width:80px;text-align:right;font-size:11px">'+h.user+'</span>';
     list.appendChild(d);
   });
@@ -416,23 +475,67 @@ function rBankForm(){
   if(!p.bank&&CU!=='admin'){area.innerHTML='<div class="alert alert-amb">🔒 Sem permissão para editar saldos. Contate a Tesouraria.</div>';return;}
   var opts=BANKS.map(function(n){return'<option value="'+n+'">'+n+'</option>';}).join('');
   var today=NOW.toISOString().split('T')[0];
-  area.innerHTML='<div class="card"><div class="card-title">Registrar / atualizar saldo — '+USER_LABELS[CU]+'</div>'
-    +'<div class="fg">'
-    +'<div class="field"><label>Banco</label><select id="bk-banco">'+opts+'</select></div>'
+  area.innerHTML='<div class="card"><div class="card-title" style="display:flex;justify-content:space-between;align-items:center">Registrar / atualizar saldo — '+UL[CU]+'<button class="btn btn-sm" onclick="toggleNewBank()" id="btn-newbank" style="font-size:11px">+ Novo banco</button></div>'
+    +'<div class="fg"><div class="field"><label>Banco</label><select id="bk-banco">'+opts+'</select></div>'
     +'<div class="field"><label>Data da posição</label><input type="date" id="bk-data" value="'+today+'"></div>'
     +'<div class="field"><label>Saldo (R$)</label><input type="number" id="bk-saldo" placeholder="0,00" step="0.01"></div>'
-    +'<div style="display:flex;align-items:flex-end;padding-bottom:10px"><button class="btn btn-grn" onclick="salvarSaldo()" style="width:100%;justify-content:center">💾 Salvar saldo</button></div>'
-    +'</div>'
-    +'<div class="alert alert-grn" style="margin-top:8px;margin-bottom:0">💡 Cada saldo é salvo com a data. O mais recente por banco vira a posição atual. O histórico fica sempre preservado.</div>'
-    +'</div>';
+    +'<div style="display:flex;align-items:flex-end;padding-bottom:10px"><button class="btn btn-grn" onclick="salvarSaldo()" style="width:100%;justify-content:center">💾 Salvar saldo</button></div></div>'
+    +'<div id="new-bank-form" style="display:none;border-top:1px solid var(--bdr);padding-top:14px;margin-top:4px">'
+    +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);margin-bottom:10px">Cadastrar novo banco</div>'
+    +'<div class="fg">'
+    +'<div class="field"><label>Nome do banco</label><input type="text" id="nb-nome" placeholder="Ex: Sicoob"></div>'
+    +'<div class="field"><label>Tipo</label><select id="nb-tipo"><option value="cc">Conta corrente</option><option value="apl">Aplicação / CDB</option><option value="cx">Caixa físico</option><option value="out">Outros</option></select></div>'
+    +'<div class="field"><label>Agência</label><input type="text" id="nb-ag" placeholder="0000"></div>'
+    +'<div class="field"><label>Conta</label><input type="text" id="nb-cc" placeholder="00000-0"></div>'
+    +'<div class="field"><label>Saldo inicial (R$)</label><input type="number" id="nb-saldo" placeholder="0,00" step="0.01"></div>'
+    +'<div style="display:flex;align-items:flex-end;padding-bottom:10px"><button class="btn btn-grn" onclick="cadastrarBanco()" style="width:100%;justify-content:center">✅ Cadastrar banco</button></div>'
+    +'</div></div>'
+    +'<div class="alert alert-grn" style="margin-top:8px;margin-bottom:0">💡 Cada saldo é salvo com a data no histórico. O mais recente vira a posição atual. Histórico sempre preservado.</div></div>';
+}
+
+function toggleNewBank(){
+  var f=document.getElementById('new-bank-form');
+  var b=document.getElementById('btn-newbank');
+  if(f.style.display==='none'){f.style.display='block';b.textContent='✕ Fechar';}
+  else{f.style.display='none';b.textContent='+ Novo banco';}
+}
+
+async function cadastrarBanco(){
+  var nome=document.getElementById('nb-nome').value.trim();
+  if(!nome){toast('Informe o nome do banco');return;}
+  if(BANKS.indexOf(nome)>=0){toast('Banco já cadastrado!');return;}
+  var tipo=document.getElementById('nb-tipo').value;
+  var ag=document.getElementById('nb-ag').value.trim();
+  var cc=document.getElementById('nb-cc').value.trim();
+  var saldo=pv(document.getElementById('nb-saldo').value);
+  var today=NOW.toISOString().split('T')[0];
+  var p=today.split('-');var dataFmt=p[2]+'/'+p[1]+'/'+p[0];
+  // Add to BANKS and BTIPO
+  BANKS.push(nome);
+  BTIPO[nome]=tipo;
+  BTLBL_CUSTOM=BTLBL_CUSTOM||{};
+  // Save bank metadata to cloud
+  var meta={nome:nome,tipo:tipo,ag:ag,cc:cc};
+  DB.meta=DB.meta||[];
+  DB.meta=DB.meta.filter(function(m){return m.nome!==nome;});
+  DB.meta.push(meta);
+  var ok=await saveMeta();
+  // Save initial balance if provided
+  if(saldo>0){
+    var entry={banco:nome,saldo:saldo,data:dataFmt,user:CU,ts:Date.now()};
+    DB.hist.push(entry);DB.hist.sort(function(a,b){return b.ts-a.ts;});
+    buildBanks();await saveHist();
+  }
+  rBanks();
+  toast(ok?'✅ Banco "'+nome+'" cadastrado na nuvem!':'✅ Banco cadastrado localmente');
 }
 
 function rImport(){
   var p=PERMS[CU];
   var ra=document.getElementById('rec-import-area');var pa=document.getElementById('pag-import-area');
-  if(p.rec||CU==='admin'){ra.innerHTML='<div class="iz" onclick="document.getElementById(\'fi-rec\').click()"><div class="ic">📥</div><p>Importar A Receber — TXT ou Excel</p><small>TXT separado por ; (formato Xingo) · Excel com NOME, VAL_TITULO, DTA_VENCIMENTO, DES_ORIGEM, STATUS</small></div>';}
+  if(p.rec||CU==='admin'){ra.innerHTML='<div class="iz" onclick="document.getElementById(\'fi-rec\').click()"><div class="ic">📥</div><p>Importar A Receber — TXT ou Excel</p><small>TXT separado por ; · Excel com NOME, VAL_TITULO, DTA_VENCIMENTO, DES_ORIGEM, STATUS</small></div>';}
   else{ra.innerHTML='<div class="alert alert-amb">🔒 Sem permissão. Contate o Financeiro.</div>';}
-  if(p.pag||CU==='admin'){pa.innerHTML='<div class="iz" onclick="document.getElementById(\'fi-pag\').click()"><div class="ic">📤</div><p>Importar A Pagar — TXT ou Excel</p><small>TXT separado por ; (formato Xingo) · Excel com NOME, VAL_TITULO, DTA_VENCIMENTO, DES_ORIGEM, STATUS</small></div>';}
+  if(p.pag||CU==='admin'){pa.innerHTML='<div class="iz" onclick="document.getElementById(\'fi-pag\').click()"><div class="ic">📤</div><p>Importar A Pagar — TXT ou Excel</p><small>TXT separado por ; · Excel com NOME, VAL_TITULO, DTA_VENCIMENTO, DES_ORIGEM, STATUS</small></div>';}
   else{pa.innerHTML='<div class="alert alert-amb">🔒 Sem permissão. Contate o Financeiro.</div>';}
 }
 
@@ -446,8 +549,8 @@ function importFile(input,tipo){
 function pTXT(text,tipo){
   var rows=[];var lines=text.split(/\r?\n/).filter(function(l){return l.trim();});if(!lines.length)return rows;
   var h=lines[0].split(';').map(function(x){return x.trim().toUpperCase();});
-  var iN=idxH(h,['NOME','CLIENTE','FORNECEDOR']);var iV=idxH(h,['VAL_TITULO','VALOR','SALDO','VAL']);
-  var iVe=idxH(h,['DTA_VENCIMENTO','VENCIMENTO','DT_VENC']);var iO=idxH(h,['DES_ORIGEM','DESCRICAO','ORIGEM','CATEGORIA']);
+  var iN=idxH(h,['NOME','NOME_CLIENTE','CLIENTE','FORNECEDOR']);var iV=idxH(h,['VAL_TITULO','VALOR','SALDO','VAL']);
+  var iVe=idxH(h,['DTA_VENCIMENTO','VENCIMENTO','DT_VENC']);var iO=idxH(h,['DES_ORIGEM','NOME_ORIGEM','DESCRICAO','ORIGEM','CATEGORIA']);
   var iD=idxH(h,['NOME_DEPARTAMENTO','DEPARTAMENTO','DEPTO']);var iS=idxH(h,['STATUS','SITUACAO']);var iT=idxH(h,['TIPO']);
   for(var i=1;i<lines.length;i++){
     var c=lines[i].split(';');
@@ -464,14 +567,14 @@ function pXL(ab,tipo,cb){
     var n={};Object.keys(r).forEach(function(k){n[k.trim().toUpperCase()]=r[k];});
     var t=n['TIPO']||'';if(t&&t.trim()!==tipo&&t.trim()!=='')return null;
     var v=pv(n['VAL_TITULO']||n['VALOR']||n['SALDO']||0);if(!v)return null;
-    return{nome:n['NOME']||n['CLIENTE']||n['FORNECEDOR']||'',val:v,venc:n['DTA_VENCIMENTO']||n['VENCIMENTO']||'—',orig:n['DES_ORIGEM']||n['DESCRICAO']||n['CATEGORIA']||'—',depto:n['NOME_DEPARTAMENTO']||n['DEPARTAMENTO']||'—',status:n['STATUS']||'EM'};
+    return{nome:n['NOME']||n['NOME_CLIENTE']||n['CLIENTE']||n['FORNECEDOR']||'',val:v,venc:n['DTA_VENCIMENTO']||n['VENCIMENTO']||'—',orig:n['DES_ORIGEM']||n['NOME_ORIGEM']||n['DESCRICAO']||n['CATEGORIA']||'—',depto:n['NOME_DEPARTAMENTO']||n['DEPARTAMENTO']||'—',status:n['STATUS']||'EM'};
   }).filter(Boolean);cb(rows);
 }
 async function loadRows(rows,tipo,fname){
-  if(!rows.length){toast('Nenhum título em '+fname);return;}
-  if(tipo==='CR'){DB.cr=rows;rRec();}else{DB.cp=rows;rPag();}
-  var ok=await saveCloud(tipo==='CR'?'xingo_cr':'xingo_cp',rows);
-  toast(rows.length+' título(s)'+(ok?' · nuvem sincronizada!':' · salvo localmente'));
+  if(!rows.length){toast('Nenhum título encontrado em '+fname);return;}
+  toast('Salvando '+rows.length+' títulos na nuvem...');
+  if(tipo==='CR'){DB.cr=rows;rRec();var ok=await saveCR();toast(ok?'✅ A Receber salvo na nuvem!':'⚠️ Erro ao salvar na nuvem.');}
+  else{DB.cp=rows;rPag();var ok2=await saveCP();toast(ok2?'✅ A Pagar salvo na nuvem!':'⚠️ Erro ao salvar na nuvem.');}
 }
 
 function rRec(){
@@ -581,21 +684,13 @@ function rCEO(){
   var vR=DB.cr.filter(function(r){return isV(r.venc);}).reduce(function(a,r){return a+r.val;},0);
   var vP=DB.cp.filter(function(r){return isV(r.venc);}).reduce(function(a,r){return a+r.val;},0);
   var liq=tR-tP;
-  body.innerHTML='<div class="kpi-row">'
-    +kv('Saldo Bancos',fmtF(tB),'posição atual','blu')+kv('A Receber',fmtF(tR),DB.cr.length+' títulos','grn')
-    +kv('A Pagar',fmtF(tP),DB.cp.length+' títulos','red')+kv('Posição Líquida',fmtF(liq),(liq>=0?'superávit':'déficit'),liq>=0?'grn':'red')
-    +'</div>'
-    +((vR>0||vP>0)?'<div class="alert alert-red">⚠ '+(vR>0?fmtF(vR)+' a receber vencido':'')+(vR>0&&vP>0?' · ':'')+( vP>0?fmtF(vP)+' a pagar vencido':'')+'</div>':'<div class="alert alert-grn">✅ Nenhum título vencido.</div>')
-    +'<div class="two-col">'
-    +'<div class="card"><div class="card-title">Bancos — posição</div><div id="ceo-banks"></div></div>'
+  body.innerHTML='<div class="kpi-row">'+kv('Saldo Bancos',fmtF(tB),'posição atual','blu')+kv('A Receber',fmtF(tR),DB.cr.length+' títulos','grn')+kv('A Pagar',fmtF(tP),DB.cp.length+' títulos','red')+kv('Posição Líquida',fmtF(liq),(liq>=0?'superávit':'déficit'),liq>=0?'grn':'red')+'</div>'
+    +((vR>0||vP>0)?'<div class="alert alert-red">⚠ '+(vR>0?fmtF(vR)+' a receber vencido':'')+(vR>0&&vP>0?' · ':'')+(vP>0?fmtF(vP)+' a pagar vencido':'')+'</div>':'<div class="alert alert-grn">✅ Nenhum título vencido.</div>')
+    +'<div class="two-col"><div class="card"><div class="card-title">Bancos — posição</div><div id="ceo-banks"></div></div>'
     +'<div class="card"><div class="card-title">Gráfico semanal</div>'
     +'<div class="legend"><span><span class="lsq" style="background:rgba(26,138,90,.75)"></span>Entradas</span><span><span class="lsq" style="background:rgba(192,64,32,.75)"></span>Saídas</span><span><span class="lln" style="background:#1a5090"></span>Saldo</span></div>'
-    +'<div class="cw" style="height:160px"><canvas id="ceo-sem"></canvas></div></div>'
-    +'</div>'
-    +'<div class="two-col">'
-    +'<div class="card"><div class="card-title">Top — A Receber</div><div id="ceo-rec"></div></div>'
-    +'<div class="card"><div class="card-title">Top — A Pagar</div><div id="ceo-pag"></div></div>'
-    +'</div>'
+    +'<div class="cw" style="height:160px"><canvas id="ceo-sem"></canvas></div></div></div>'
+    +'<div class="two-col"><div class="card"><div class="card-title">Top — A Receber</div><div id="ceo-rec"></div></div><div class="card"><div class="card-title">Top — A Pagar</div><div id="ceo-pag"></div></div></div>'
     +'<div class="card"><div class="card-title">Por departamento</div><div class="tw" style="margin-bottom:0"><table><thead><tr><th>Departamento</th><th style="text-align:right">A Receber</th><th style="text-align:right">A Pagar</th><th style="text-align:right">Saldo</th></tr></thead><tbody id="ceo-dep"></tbody></table></div></div>'
     +'<div style="font-size:11px;color:var(--t3);text-align:right;padding-top:4px">Gerado em '+NOW.toLocaleString('pt-BR')+' · Xingo Automóveis</div>';
   var bEl=document.getElementById('ceo-banks');bEl.innerHTML='';
@@ -637,7 +732,9 @@ function shareWhatsApp(){
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 
+// ── INIT ─────────────────────────────────────────────────
 (async function init(){
+  loadBinIds();
   rImport();rBankForm();
   await loadCloud();
   rBanks();
@@ -647,6 +744,7 @@ function shareWhatsApp(){
   setInterval(async function(){
     await loadCloud();rBanks();
     if(DB.cr.length)rRec();if(DB.cp.length)rPag();
+    document.getElementById('bank-last-upd').textContent='Atualizado '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   },30000);
 })();
 </script>
